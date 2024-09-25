@@ -2,11 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\TicketOpened;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Auth;
 class TicketController extends Controller
 {
+    public function index()
+    {
+        $tickets = Ticket::where('user_id', Auth::id())->get();
+        return view('home', compact('tickets')); // Modify to your customer dashboard
+    }
+
     public function create()
     {
         return view('tickets.create');
@@ -15,31 +23,40 @@ class TicketController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'issue' => 'required|string|max:255',
+            'subject' => 'required|string|max:255',
+            'description' => 'required|string',
         ]);
 
         $ticket = Ticket::create([
-            'user_id' => auth()->id(),
-            'issue' => $request->issue,
+            'user_id' => Auth::id(),
+            'subject' => $request->subject,
+            'description' => $request->description,
         ]);
 
-        // Send email to admin (use Laravel Mail)
-        Mail::to('admin@example.com')->send(new TicketOpened($ticket));
+        Mail::to(Auth::user()->email)->send(new TicketOpened($ticket));
 
-        return redirect()->route('tickets.index')->with('success', 'Ticket submitted successfully.');
+        return redirect()->route('tickets.index')->with('success', 'Ticket opened successfully!');
     }
 
-// Method to close the ticket
-    public function close($id)
+    public function adminIndex()
     {
-        $ticket = Ticket::findOrFail($id);
-        $ticket->is_closed = true;
-        $ticket->save();
+        $tickets = Ticket::all();
+        return view('admin.tickets.index', compact('tickets'));
+    }
 
-        // Notify customer
-        Mail::to($ticket->user->email)->send(new TicketClosed($ticket));
+    public function show(Ticket $ticket)
+    {
+        return view('admin.tickets.show', compact('ticket'));
+    }
 
-        return redirect()->route('tickets.index')->with('success', 'Ticket closed successfully.');
+    public function close(Ticket $ticket)
+    {
+        $ticket->update(['status' => 'closed']);
+
+        // Send email notification to customer
+        Mail::to($ticket->user->email)->send(new \App\Mail\TicketClosed($ticket));
+
+        return redirect()->route('admin.tickets.index')->with('success', 'Ticket closed successfully!');
     }
 
 }

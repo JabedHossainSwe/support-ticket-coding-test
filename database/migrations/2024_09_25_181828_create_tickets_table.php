@@ -12,10 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tickets', function (Blueprint $table) {
-            $table->id(); $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->text('issue');
-            $table->text('response')->nullable();
-            $table->boolean('is_closed')->default(false);
+            $table->id(); 
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('subject');
+            $table->text('description');
+            $table->enum('status', ['open', 'closed'])->default('open');
             $table->timestamps();
         });
     }

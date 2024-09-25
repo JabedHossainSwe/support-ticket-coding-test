@@ -1,23 +1,21 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">{{ __('Dashboard') }}</div>
+    <div class="container">
+        <h1>Your Tickets</h1>
+        <a href="{{ route('tickets.create') }}" class="btn btn-primary">Open New Ticket</a>
 
-                <div class="card-body">
-                    @if (session('status'))
-                        <div class="alert alert-success" role="alert">
-                            {{ session('status') }}
-                        </div>
-                    @endif
-
-                    {{ __('You are logged in!') }}
-                </div>
-            </div>
-        </div>
+        @if ($tickets->isEmpty())
+            <p>You have not opened any tickets.</p>
+        @else
+            <ul class="list-group mt-3">
+                @foreach ($tickets as $ticket)
+                    <li class="list-group-item">
+                        <strong>{{ $ticket->subject }}</strong>
+                        <span class="badge badge-secondary">{{ $ticket->status }}</span>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
     </div>
-</div>
 @endsection
