@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\UserController;
+use App\Models\Ticket;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -23,11 +26,13 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', [HomeController::class, 'index'])->name('home');
+Route::get('/users', [UserController::class, 'index'])->name('users.index');
 
 Route::get('/admin/dashboard', function () {
     if (Auth::check() && Auth::user()->is_admin === 1) {
-
-        return view('admin.dashboard');
+        $totalTickets = Ticket::count();
+        $totalUsers = User::count();
+        return view('admin.dashboard', compact('totalTickets', 'totalUsers'));
     }
     return redirect('/');
 })->name('admin.dashboard');
